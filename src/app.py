@@ -6,18 +6,44 @@ from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from api.utils import APIException, generate_sitemap
-from api.models import db
+from api.models import db, TokenBlockedList
 from api.routes import api
 from api.admin import setup_admin
 from api.commands import setup_commands
+from flask_jwt_extended import JWTManager
+
+
 
 # from models import Person
 
 ENV = "development" if os.getenv("FLASK_DEBUG") == "1" else "production"
 static_file_dir = os.path.join(os.path.dirname(
     os.path.realpath(__file__)), '../dist/')
+
 app = Flask(__name__)
 app.url_map.strict_slashes = False
+
+# Aqui empezamos el ejercicio y vamos cnfigurar JWT
+# 1- activamos entorno virtual con pipenv shell
+# JWT Configuration
+# 2- copiamos esta linea extraida de la documentacion --app.config["JWT_SECRET_KEY"] = "super-secret"--
+# 3- la adaptamos a nuestro repo escribiendo despues del = --os.getenv("FLASK_APP_KEY")-- esto es una variable que esta en nuestro archivo .env
+app.config["JWT_SECRET_KEY"] = os.getenv("FLASK_APP_KEY")
+# 4-creamos instancia (que la obtenems de la documentacion) que luego usaremos en nuestro codigo
+jwt = JWTManager(app)
+# 5- recuerda importar arriba JWTManager
+# lo siguiente es ir al archivo routes.py
+
+#si llegas ha esta lia es que ya has pasado por los demas archivos de rutas y ahora necesitas hacer el logout
+# implementamos el codigo extraido de la documentacion de jwt
+@jwt.token_in_blocklist_loader # esta funcion lo que hace es responder verdader si el token esta blokeado y Falso si "no" esta blokeado
+def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
+    jti = jwt_payload["jti"]
+    #token = db.session.query(TokenBlocklist.id).filter_by(jti=jti).scalar() # recuerda importar arriba ↑ el TokenBlocklist
+    token = TokenBlockedList.query.filter_by(jti=jti).first() # recuerda importar arriba ↑ el TokenBlocklist
+
+    return token is not None
+
 
 # database condiguration
 db_url = os.getenv("DATABASE_URL")
@@ -57,6 +83,8 @@ def sitemap():
     return send_from_directory(static_file_dir, 'index.html')
 
 # any other endpoint will try to serve it like a static file
+
+
 @app.route('/<path:path>', methods=['GET'])
 def serve_any_other_file(path):
     if not os.path.isfile(os.path.join(static_file_dir, path)):
