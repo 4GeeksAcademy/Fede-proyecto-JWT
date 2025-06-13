@@ -40,7 +40,6 @@ export default function storeReducer(store, action = {}) {
         ...store,
         token: action.payload,
       };
-
     case "LOAD_TOKEN":
       return {
         ...store,

@@ -24,4 +24,32 @@ export const publicFetch = async (endpoint, method = "GET", body = null) => {
   }
 };
 
-export const privateFetch = () => {};
+export const privateFetch = async (endpoint, method = "GET", body = null) => {
+  let params = {
+    method,
+    headers: { Authorization: "Bearer" + localStorage.getItem("token") },
+  };
+
+  if (body) {
+    params.body = JSON.stringify(body);
+    params.headers = {
+      "Content-Type": "application/json",
+    };
+  }
+  try {
+    let response = await fetch(apiUrl + endpoint, params);
+    if (response.status >= 500) {
+      console.error(response.status, response.statusText);
+      return null;
+    }
+    if (response.status >= 400) {
+      console.error(response.status, response.statusText);
+
+      return await response.json();
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
