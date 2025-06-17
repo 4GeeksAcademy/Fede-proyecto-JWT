@@ -21,7 +21,12 @@ export const Navbar = () => {
 					{/* Renderizado condicional basado en la existencia del token */}
 					{token ? (
 						// Si SÍ hay token (usuario logueado), muestra el botón de Logout
-						<LogoutButton />
+						<>
+							<Link to="/private"> {/* Asumiendo que tu ruta de login es '/login' */}
+								<button className="btn btn-primary">Zona privada</button>
+							</Link>
+							<LogoutButton />
+						</>
 					) : (
 						// Si NO hay token (usuario no logueado), muestra el botón de Login o el de "Check the Context"
 						!isLoginPage &&

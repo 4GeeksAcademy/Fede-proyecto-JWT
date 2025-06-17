@@ -30,7 +30,7 @@ export const Login = () => {
             return
         }
         console.log("sesion iniciada")
-        navigate("/")
+        navigate("/private")
 
 
 

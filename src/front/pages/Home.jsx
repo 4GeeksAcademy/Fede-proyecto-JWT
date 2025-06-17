@@ -10,38 +10,6 @@ export const Home = () => {
 	const { store, dispatch } = useGlobalReducer()
 
 
-	// const loadMessage = async () => {
-	// 	try {
-	// 		/* const backendUrl = import.meta.env.VITE_BACKEND_URL
-
-	// 		if (!backendUrl) throw new Error("VITE_BACKEND_URL is not defined in .env file")
-
-	// 		const response = await fetch(backendUrl + "/hello")
-	// 		const data = await response.json()
-
-	// 		if (response.ok) dispatch({ type: "set_hello", payload: data.message }) */
-	// 		const data = await publicFetch("/hello")
-
-	// 		if (data) dispatch({ type: "set_hello", payload: data.message })
-
-	// 		return data
-
-	// 	} catch (error) {
-	// 		if (error.message) throw new Error(
-	// 			`Could not fetch the message from the backend.
-	// 			Please check if the backend is running and the backend port is public.`
-	// 		);
-	// 	}
-
-	// }
-
-	// useEffect(() => {
-	// 	loadMessage()
-	// }, [])
-
-
-
-
 	useEffect(() => {
 		if (store.token) {
 			getInfo(dispatch)
@@ -55,13 +23,7 @@ export const Home = () => {
 				<img src={rigoImageUrl} className="img-fluid rounded-circle mb-3" alt="Rigo Baby" />
 			</p>
 			<div className="alert alert-info">
-				{store.userInfo ? (
-					<span>{JSON.stringify(store.userInfo.user)}</span>
-				) : (
-					<span className="text-danger">
-						Loading message from the backend (make sure your python 🐍 backend is running)...
-					</span>
-				)}
+
 			</div>
 		</div>
 	);

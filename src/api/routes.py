@@ -66,7 +66,7 @@ def login_user():
         return jsonify({"msg": "clave invalida"}), 401
     # si es True se genera el token
     token = create_access_token(identity=str(
-        user.id), expires_delta=timedelta(minutes=2))
+        user.id), expires_delta=timedelta(minutes=1))
     # aqui hay que recordar importar arriba ↑ el create_access_token
     return jsonify({"token": token}), 200  # retorna un error si no es  Treu
 
