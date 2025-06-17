@@ -30,9 +30,15 @@ export const Navbar = () => {
 					) : (
 						// Si NO hay token (usuario no logueado), muestra el botón de Login o el de "Check the Context"
 						!isLoginPage &&
-						<Link to="/login"> {/* Asumiendo que tu ruta de login es '/login' */}
-							<button className="btn btn-primary">Iniciar Sesión</button>
-						</Link>
+						<>
+							<Link to="/login"> {/* Asumiendo que tu ruta de login es '/login' */}
+								<button className="btn btn-primary">Iniciar Sesión</button>
+							</Link>
+							<Link to="/register"> {/* Asumiendo que tu ruta de login es '/login' */}
+								<button className="btn btn-success">Registrarse</button>
+							</Link>
+
+						</>
 
 					)}
 				</div>

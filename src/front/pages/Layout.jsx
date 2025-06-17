@@ -13,13 +13,42 @@ export const Layout = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { store, dispatch } = useGlobalReducer();
+
+    const publicPaths = ["/", "/login", "/register"];
     //Esta es una forma de aplicar la expulcion por expiracion de token , tambien podria hacerce donde de encuentran los fetch privados
     useEffect(() => {
         const token = localStorage.getItem("token");
         const currentPage = location.pathname;
 
-        if (!token) {
+        // 1. Si la página actual es una ruta pública, no hacemos ninguna verificación de token aquí.
+        if (publicPaths.includes(currentPage)) {
+            // Opcional: Si estás en una ruta pública pero tienes un token expirado en localStorage,
+            // podrías limpiarlo aquí sin forzar una redirección.
+            if (token) {
+                try {
+                    const { exp } = jwtDecode(token);
+                    const currentTime = Date.now();
+                    if (currentTime >= exp * 1000) {
+                        console.log("Token expirado en ruta pública. Limpiando localStorage.");
+                        localStorage.removeItem("token");
+                        dispatch({ type: "LOGOUT_USER" }); // Limpia el estado global (userInfo, etc.)
+                    }
+                } catch (error) {
+                    console.error("Token inválido en ruta pública. Limpiando localStorage.", error);
+                    localStorage.removeItem("token");
+                    dispatch({ type: "LOGOUT_USER" }); // Limpia el estado global
+                }
+            }
+            return; // Salimos del efecto, no se necesita redirección
+        }
 
+        // 2. Si la página actual NO es una ruta pública (es decir, es una RUTA PROTEGIDA)
+        // y no hay token o el token es inválido/expirado, entonces redirigimos.
+
+        // Si NO hay token
+        if (!token) {
+            console.log("No hay token para ruta protegida. Redirigiendo a /login.");
+            // Aseguramos que el estado global esté limpio si no hay token
             if (store.token || Object.keys(store.userInfo).length > 0) {
                 dispatch({ type: "LOGOUT_USER" });
             }
@@ -27,31 +56,35 @@ export const Layout = () => {
             return;
         }
 
+        // Si hay token, pero podría estar expirado o ser inválido
         try {
             const { exp } = jwtDecode(token);
-            if (Date.now() >= exp * 1000) {
-                console.log("Token expirado detectado en Layout. Redirigiendo y limpiando.");
-                localStorage.removeItem("token"); // Borra del localStorage
-                dispatch({ type: "LOGOUT_USER" }); // <-- ¡Llama a la acción LOGOUT_USER para limpiar el estado global!
-                navigate("/login"); // Redirige al login o home
+            const currentTime = Date.now();
+
+            if (currentTime >= exp * 1000) {
+                console.log("Token expirado para ruta protegida. Limpiando y redirigiendo a /login.");
+                localStorage.removeItem("token");
+                dispatch({ type: "LOGOUT_USER" });
+                navigate("/login");
             }
         } catch (error) {
-            // Esto se ejecuta si el token no es un JWT válido o está corrupto
-            console.error("Error al decodificar o validar el token en Layout:", error);
-            localStorage.removeItem("token"); // Borra del localStorage
-            dispatch({ type: "LOGOUT_USER" }); // <-- ¡Llama a la acción LOGOUT_USER para limpiar el estado global!
-            navigate("/login"); // Redirige al login o home
+            // El token existe pero no es un JWT válido (corrupto, etc.)
+            console.error("Token inválido para ruta protegida. Limpiando y redirigiendo a /login:", error);
+            localStorage.removeItem("token");
+            dispatch({ type: "LOGOUT_USER" });
+            navigate("/login");
         }
-    }, [navigate, location.pathname, dispatch, store.token, store.userInfo]);
+
+    }, [navigate, location.pathname, dispatch, store.token, store.userInfo]); // Dependencias del useEffect
+
     return (
         <ScrollToTop>
             <Navbar />
             <Outlet />
             <Footer />
         </ScrollToTop>
-    )
-
-}
+    );
+};
 
 
 
