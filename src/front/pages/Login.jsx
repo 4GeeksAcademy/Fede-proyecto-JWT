@@ -1,7 +1,6 @@
-import React, { useState } from "react"
-import rigoImageUrl from "../assets/img/rigo-baby.jpg";
+import React, { useState, useEffect } from "react"
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
-
+import { useNavigate } from 'react-router-dom';
 import { login } from "../fetch/user.js";
 
 export const Login = () => {
@@ -9,6 +8,15 @@ export const Login = () => {
     const { store, dispatch } = useGlobalReducer()
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const navigate = useNavigate()
+
+    //Aqui aplcamos este usEffect para que si hay token no me deje ir al login y me redirija al home
+    useEffect(() => {
+        if (store.token) {
+            navigate("/")
+        }
+
+    }, [store.token])
 
     async function formSubmit(e) {
         e.preventDefault()
@@ -22,6 +30,7 @@ export const Login = () => {
             return
         }
         console.log("sesion iniciada")
+        navigate("/")
 
 
 

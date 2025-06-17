@@ -6,10 +6,11 @@ from api.models import db, User, TokenBlockedList
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt  # aqui importamos bcrypt (paso 9)
-from flask_jwt_extended import create_access_token # lo usamos en el login
-from flask_jwt_extended import get_jwt_identity # lo usamos en la ruta protegida
-from flask_jwt_extended import jwt_required # lo usamos en la ruta protegida
-from flask_jwt_extended import get_jwt # lo usamos en la ruta protegida
+from flask_jwt_extended import create_access_token  # lo usamos en el login
+from flask_jwt_extended import get_jwt_identity  # lo usamos en la ruta protegida
+from flask_jwt_extended import jwt_required  # lo usamos en la ruta protegida
+from flask_jwt_extended import get_jwt  # lo usamos en la ruta protegida
+from datetime import timedelta  # esto es para modificar el tiempo del token
 
 api = Blueprint('api', __name__)
 
@@ -42,49 +43,60 @@ def register_user():
     db.session.add(new_user)
     db.session.commit()
     return jsonify(new_user.serialize()), 201
-# 12- una vez realizado todos los pasos probamos con postman hacer el post 
+# 12- una vez realizado todos los pasos probamos con postman hacer el post
 # Hasta aqui llegaria la parte de registro de usuario, ahora nos falta el login y logout
 
 # Ruta LOGIN
-@api.route('/login', methods = ['POST'])
+
+
+@api.route('/login', methods=['POST'])
 def login_user():
-    body= request.get_json() # decimos que el cuerpo sera una respuesta json
-    user=User.query.filter_by(email=body["email"]).first() # primero buscamos al usuario haciendo un filter y buscame el primero
+    body = request.get_json()  # decimos que el cuerpo sera una respuesta json
+    # primero buscamos al usuario haciendo un filter y buscame el primero
+    user = User.query.filter_by(email=body["email"]).first()
     if user is None:
-        return jsonify({"msg": "correo no encontrado"}), 401 # retorna un error si no encuentra al usuario
-    #buscamos en la documentacion e implementamos la siguiente funcion para chequer el password --bcrypt.check_password_hash(pw_hash, 'hunter2')--
-    is_valid_password=bcrypt.check_password_hash(user.password, body["password"]) # aqui comparamos user.password con body["password"] y esto retornara  False o True
+        # retorna un error si no encuentra al usuario
+        return jsonify({"msg": "correo no encontrado"}), 401
+    # buscamos en la documentacion e implementamos la siguiente funcion para chequer el password --bcrypt.check_password_hash(pw_hash, 'hunter2')--
+    # aqui comparamos user.password con body["password"] y esto retornara  False o True
+    is_valid_password = bcrypt.check_password_hash(
+        user.password, body["password"])
     if not is_valid_password:
-        return jsonify({"msg": "clave invalida"}), 401 # retorna un error si no es  Treu
+        # retorna un error si no es  Treu
+        return jsonify({"msg": "clave invalida"}), 401
     # si es True se genera el token
-    token= create_access_token(identity=str(user.id))
-    # aqui hay que recordar importar arriba ↑ el create_access_token 
-    return jsonify({"token": token}), 200 # retorna un error si no es  Treu
-    
+    token = create_access_token(identity=str(
+        user.id), expires_delta=timedelta(minutes=2))
+    # aqui hay que recordar importar arriba ↑ el create_access_token
+    return jsonify({"token": token}), 200  # retorna un error si no es  Treu
+
 
 # Ruta PROTECTED O PROTEGIDA eta ruta me traera la informacion del usuario y al mismo tiempo me valida el token
-@api.route('/private', methods= ['GET'])
-#aqui necesitaremos importar un decorador que obtendremos de la documentacion --@jwt_required()--
-#no olvides importarlo arriba ↑
-@jwt_required() # con esto la ruta se convierte automaticamente en una ruta protegida
+@api.route('/private', methods=['GET'])
+# aqui necesitaremos importar un decorador que obtendremos de la documentacion --@jwt_required()--
+# no olvides importarlo arriba ↑
+@jwt_required()  # con esto la ruta se convierte automaticamente en una ruta protegida
 def user_info():
-    user_id=get_jwt_identity() # Obtiene el identity del token
-    user=User.query.get(user_id)
-    payload=get_jwt() # Obtiene todos los campos del payload del token
+    user_id = get_jwt_identity()  # Obtiene el identity del token
+    user = User.query.get(user_id)
+    payload = get_jwt()  # Obtiene todos los campos del payload del token
     # Retornando la informacion del token y del usuario
     return jsonify({
         "user": user.serialize(),
-        "payload" : payload
+        "payload": payload
     })
 # hecho esto en postman al hacer el Get devemos introducir en el header como autorization el token que extraigamos del login
 # Lo siguiente es hacer el logout pero antes hay que crear un nuevo modelo
 
-#Ruta LOGOUT
-@api.route('/logout', methods = ["POST"])
-@jwt_required() 
+# Ruta LOGOUT
+
+
+@api.route('/logout', methods=["POST"])
+@jwt_required()
 def user_logout():
-    payload= get_jwt()
-    token_bloked= TokenBlockedList(jti=payload["jti"]) # recuerda importar arriba ↑ --TokenBlockedList--
+    payload = get_jwt()
+    # recuerda importar arriba ↑ --TokenBlockedList--
+    token_bloked = TokenBlockedList(jti=payload["jti"])
     db.session.add(token_bloked)
     db.session.commit()
     return jsonify({"msg": "User logged out"})

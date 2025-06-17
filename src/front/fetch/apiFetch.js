@@ -1,11 +1,17 @@
 const apiUrl = import.meta.env.VITE_BACKEND_URL;
 
 export const publicFetch = async (endpoint, method = "GET", body = null) => {
-  let params = { method };
-  if (body) params.body = JSON.stringify(body);
-  params.headers = {
-    "Content-Type": "application/json",
+  let params = {
+    method,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+    },
   };
+  if (body) {
+    params.body = JSON.stringify(body);
+    params.headers["Content-Type"] = "application/json";
+  }
+
   try {
     let response = await fetch(apiUrl + endpoint, params);
     if (response.status >= 500) {
@@ -27,14 +33,15 @@ export const publicFetch = async (endpoint, method = "GET", body = null) => {
 export const privateFetch = async (endpoint, method = "GET", body = null) => {
   let params = {
     method,
-    headers: { Authorization: "Bearer" + localStorage.getItem("token") },
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      Authorization: "Bearer " + localStorage.getItem("token"), // aqui hay que recordar de poner un espacio despues de Bearer sino da error
+    },
   };
 
   if (body) {
     params.body = JSON.stringify(body);
-    params.headers = {
-      "Content-Type": "application/json",
-    };
+    params.headers["Content-Type"] = "application/json";
   }
   try {
     let response = await fetch(apiUrl + endpoint, params);

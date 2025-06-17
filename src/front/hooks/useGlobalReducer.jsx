@@ -14,9 +14,9 @@ export function StoreProvider({ children }) {
     const [store, dispatch] = useReducer(storeReducer, initialStore())
     // El primer useEfect de mi aplicacion
     // Se usa para inicializar cosas al principio
-    /* useEffect(() => {
+    useEffect(() => {
         dispatch({ type: "LOAD_TOKEN" })
-    }, []) */
+    }, [])
     // Provide the store and dispatch method to all child components.
     return <StoreContext.Provider value={{ store, dispatch }}>
         {children}

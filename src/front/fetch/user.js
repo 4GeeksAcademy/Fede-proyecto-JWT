@@ -1,4 +1,4 @@
-import { publicFetch, privateFetch } from "./apifetch";
+import { publicFetch, privateFetch } from "./apiFetch";
 
 export const login = async (dispatch, email, password) => {
   let response = await publicFetch("/login", "POST", { email, password });
@@ -14,12 +14,13 @@ export const logout = async () => {};
 
 export const register = async () => {};
 
-export const getInfo = async () => {
-  let response = await privateFetch("/userinfo");
+export const getInfo = async (dispatch) => {
+  let response = await privateFetch("/private");
   if (response.msg) {
     console.error(response.msg);
     return null;
   }
   dispatch({ type: "SET_USER_INFO", payload: response });
+  console.log(response);
   return response;
 };
