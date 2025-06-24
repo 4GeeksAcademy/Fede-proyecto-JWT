@@ -10,9 +10,32 @@ export const login = async (dispatch, email, password) => {
   return response;
 };
 
-export const logout = async () => {};
+export const register = async (fullname, email, password) => {
+  try {
+    const responseData = await publicFetch("/register", "POST", {
+      fullname,
+      email,
+      password,
+    });
 
-export const register = async () => {};
+    // Si publicFetch retornó un objeto con `error: true`, significa que hubo un problema.
+    if (responseData && responseData.error) {
+      console.error("Registro Error:", responseData.msg);
+      return { ok: false, msg: responseData.msg };
+    }
+
+    // Si llegamos aquí, significa que todo fue bien y responseData contiene el usuario registrado.
+    console.log("Usuario registrado con éxito:", responseData);
+    return { ok: true, msg: "Registro completado exitosamente." };
+  } catch (e) {
+    // Este catch es para errores inesperados que publicFetch no haya manejado
+    console.error("Error inesperado en registro:", error);
+    return {
+      ok: false,
+      msg: "Ocurrió un error inesperado durante el registro.",
+    };
+  }
+};
 
 export const getInfo = async (dispatch) => {
   let response = await privateFetch("/private");
