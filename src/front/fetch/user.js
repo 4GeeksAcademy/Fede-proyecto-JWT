@@ -24,11 +24,9 @@ export const register = async (fullname, email, password) => {
       return { ok: false, msg: responseData.msg };
     }
 
-    // Si llegamos aquí, significa que todo fue bien y responseData contiene el usuario registrado.
     console.log("Usuario registrado con éxito:", responseData);
     return { ok: true, msg: "Registro completado exitosamente." };
-  } catch (e) {
-    // Este catch es para errores inesperados que publicFetch no haya manejado
+  } catch (error) {
     console.error("Error inesperado en registro:", error);
     return {
       ok: false,

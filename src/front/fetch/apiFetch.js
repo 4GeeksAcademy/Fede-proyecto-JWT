@@ -80,15 +80,11 @@ export const publicFetch = async (endpoint, method = "GET", body = null) => {
   try {
     let response = await fetch(apiUrl + endpoint, params);
 
-    // --- ¡Aquí está el cambio clave! ---
-    // Si la respuesta NO es 'ok' (es decir, es un código de estado 4xx o 5xx)
     if (!response.ok) {
       // Intentamos leer el JSON del error para obtener el mensaje del backend.
       const errorData = await response
         .json()
         .catch(() => ({ msg: "Error desconocido del servidor." }));
-      // Lanzamos un nuevo error que incluya el status y los datos del error.
-      // Esto hará que el bloque `catch` de más abajo lo capture.
       throw new Error(
         JSON.stringify({
           status: response.status,
@@ -97,9 +93,6 @@ export const publicFetch = async (endpoint, method = "GET", body = null) => {
       );
     }
 
-    // Si la respuesta SÍ es 'ok' (código 2xx), entonces simplemente parseamos el JSON y lo retornamos.
-    // No necesitamos envolverlo en un objeto { ok: true, ... } aquí, porque si llegamos aquí,
-    // ya sabemos que `response.ok` es true.
     return await response.json();
   } catch (error) {
     // Este `catch` ahora maneja TRES tipos de errores:
@@ -113,7 +106,6 @@ export const publicFetch = async (endpoint, method = "GET", body = null) => {
     };
 
     try {
-      // Intentamos parsear el error si es uno de los que lanzamos arriba
       const errorInfo = JSON.parse(error.message);
       if (errorInfo.status && errorInfo.data) {
         parsedError = {
@@ -121,12 +113,11 @@ export const publicFetch = async (endpoint, method = "GET", body = null) => {
           msg: errorInfo.data.msg || `Error HTTP ${errorInfo.status}`,
         };
       }
-    } catch (e) {
+    } catch (error) {
       // Si no se puede parsear (es un error de red o de otro tipo), usamos el mensaje original del error.
       parsedError.msg = error.message;
     }
 
-    // Retornamos un formato de error consistente para el consumidor.
     return { error: true, ...parsedError };
   }
 };
@@ -175,7 +166,7 @@ export const privateFetch = async (endpoint, method = "GET", body = null) => {
           msg: errorInfo.data.msg || `Error HTTP ${errorInfo.status}`,
         };
       }
-    } catch (e) {
+    } catch (error) {
       parsedError.msg = error.message;
     }
 
